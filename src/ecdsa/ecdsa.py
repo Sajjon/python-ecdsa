@@ -54,8 +54,16 @@ Written in 2005 by Peter Pearson and placed in the public domain.
 """
 
 from six import int2byte, b
-from . import ellipticcurve
-from . import numbertheory
+
+import sys, os
+scriptPath = os.path.realpath(os.path.dirname(sys.argv[0]))
+os.chdir(scriptPath)
+
+#append the relative location you want to import from
+sys.path.append(".")
+
+import ellipticcurve
+import numbertheory
 
 
 class Signature(object):

@@ -3,13 +3,12 @@ import binascii
 from . import ecdsa
 from . import der
 from . import rfc6979
-from .curves import NIST192p, find_curve
+from .curves import NIST192p, find_curve, orderlen
 from .util import string_to_number, number_to_string, randrange
 from .util import sigencode_string, sigdecode_string
 from .util import oid_ecPublicKey, encoded_oid_ecPublicKey
 from six import PY3, b
 from hashlib import sha1
-
 
 class BadSignatureError(Exception):
     pass
@@ -77,6 +76,16 @@ class VerifyingKey:
                                     binascii.hexlify(empty))
         assert point_str.startswith(b("\x00\x04"))
         return klass.from_string(point_str[2:], curve)
+
+    def to_string_just_x_point(self):
+        order = self.pubkey.order
+        x_str = number_to_string(self.pubkey.point.x(), order)
+        return x_str
+
+    def to_string_just_y_point(self):
+        order = self.pubkey.order
+        y_str = number_to_string(self.pubkey.point.y(), order)
+        return y_str
 
     def to_string(self):
         # VerifyingKey.from_string(vk.to_string()) == vk as long as the

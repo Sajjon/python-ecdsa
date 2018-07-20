@@ -1,6 +1,14 @@
 from __future__ import division
 
-from . import der, ecdsa
+import sys, os
+scriptPath = os.path.realpath(os.path.dirname(sys.argv[0]))
+os.chdir(scriptPath)
+
+#append the relative location you want to import from
+sys.path.append(".")
+
+import der
+import ecdsa
 
 
 class UnknownCurveError(Exception):

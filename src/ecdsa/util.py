@@ -1,12 +1,21 @@
 from __future__ import division
 
-import os
+import sys, os
 import math
 import binascii
-from hashlib import sha256
-from . import der
-from .curves import orderlen
 from six import PY3, int2byte, b, next
+from hashlib import sha256
+
+# from . import der
+# from .curves import orderlen
+
+scriptPath = os.path.realpath(os.path.dirname(sys.argv[0]))
+os.chdir(scriptPath)
+
+#append the relative location you want to import from
+sys.path.append(".")
+import der
+from curves import orderlen
 
 # RFC5480:
 #   The "unrestricted" algorithm identifier is:

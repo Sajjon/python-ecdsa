@@ -10,9 +10,20 @@ Many thanks to Coda Hale for his implementation in Go language:
 '''
 
 import hmac
-from binascii import hexlify
-from .util import number_to_string, number_to_string_crop
 from six import b
+from binascii import hexlify
+
+import sys, os
+scriptPath = os.path.realpath(os.path.dirname(sys.argv[0]))
+os.chdir(scriptPath)
+
+#append the relative location you want to import from
+sys.path.append(".")
+
+#import your module stored in '../common'
+# import util
+
+from util import number_to_string, number_to_string_crop
 
 try:
     bin(0)

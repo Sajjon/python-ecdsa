@@ -699,3 +699,6 @@ def __main__():
 
 if __name__ == "__main__":
     __main__()
+
+# https://github.com/warner/python-ecdsa/blob/ffe9a61390c76ff6f6636e29f26b45c900535aaf/README.md#testing
+del OpenSSL
