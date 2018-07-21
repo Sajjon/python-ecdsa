@@ -11,6 +11,7 @@ Many thanks to Coda Hale for his implementation in Go language:
 
 import hmac
 from six import b
+import binascii
 from binascii import hexlify
 
 import sys, os
@@ -65,6 +66,16 @@ def bits2octets(data, order):
 
     return number_to_string_crop(z2, order)
 
+def class_name(v):
+    return type(v).__name__
+
+def debug(value, variable_name):
+    value_print_friendly = value
+    if isinstance(value, bytes):
+        value_print_friendly = 'hex=`{}`, int=`{}`'.format(str(binascii.hexlify(value), 'utf-8'), int.from_bytes(value, byteorder="big"))
+
+    print('`{}`: `{}` = value=`{}`'.format(variable_name, class_name(value), value_print_friendly))
+
 
 # https://tools.ietf.org/html/rfc6979#section-3.2
 def generate_k(order, secexp, hash_func, data):
@@ -80,6 +91,14 @@ def generate_k(order, secexp, hash_func, data):
     rolen = (qlen + 7) / 8
     bx = number_to_string(secexp, order) + bits2octets(data, order)
 
+    # debug(hex(order), 'input - `order`')
+    # debug(data, 'input - `data`')
+    # debug(hex(secexp), 'input - `secexp`')
+    # debug(qlen, 'setup - `qlen`')
+    # debug(holen, 'setup - `holen`')
+    # debug(rolen, 'setup - `rolen`')
+    # debug(bx, 'setup - `bx`')
+
     # Step B
     v = b('\x01') * holen
 
@@ -89,15 +108,19 @@ def generate_k(order, secexp, hash_func, data):
     # Step D
 
     k = hmac.new(k, v + b('\x00') + bx, hash_func).digest()
+    # debug(k, 'Step d - `k`')
 
     # Step E
     v = hmac.new(k, v, hash_func).digest()
+    # debug(v, 'Step e - `v`')
 
     # Step F
     k = hmac.new(k, v + b('\x01') + bx, hash_func).digest()
+    # debug(k, 'Step f - `k`')
 
     # Step G
     v = hmac.new(k, v, hash_func).digest()
+    # debug(v, 'Step g - `v`')
 
     # Step H
     while True:
@@ -109,11 +132,15 @@ def generate_k(order, secexp, hash_func, data):
             v = hmac.new(k, v, hash_func).digest()
             t += v
 
+        # debug(t, 'Step h.2.END - `t`')
         # Step H3
         secret = bits2int(t, qlen)
+        # debug(hex(secret), 'Step h.3.a - secret (`k`)')
 
         if secret >= 1 and secret < order:
             return secret
 
         k = hmac.new(k, v + b('\x00'), hash_func).digest()
+        # debug(k, 'Step h.3.b - `k`')
         v = hmac.new(k, v, hash_func).digest()
+        # debug(v, 'Step h.3.c - `v`')

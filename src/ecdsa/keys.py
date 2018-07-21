@@ -1,12 +1,18 @@
 import binascii
 
-from . import ecdsa
-from . import der
-from . import rfc6979
-from .curves import NIST192p, find_curve, orderlen
-from .util import string_to_number, number_to_string, randrange
-from .util import sigencode_string, sigdecode_string
-from .util import oid_ecPublicKey, encoded_oid_ecPublicKey
+
+import sys, os
+scriptPath = os.path.realpath(os.path.dirname(sys.argv[0]))
+os.chdir(scriptPath)
+sys.path.append(".")
+
+import ecdsa
+import der
+import rfc6979
+from curves import find_curve, orderlen, NIST192p
+from util import string_to_number, number_to_string, randrange
+from util import sigencode_string, sigdecode_string
+from util import oid_ecPublicKey, encoded_oid_ecPublicKey
 from six import PY3, b
 from hashlib import sha1
 
@@ -249,6 +255,7 @@ class SigningKey:
         secexp = self.privkey.secret_multiplier
         k = rfc6979.generate_k(
             self.curve.generator.order(), secexp, hashfunc, digest)
+        # print("RFC6979 'k' = `{}`".format(hex(k)))
 
         return self.sign_digest(digest, sigencode=sigencode, k=k)
 
@@ -276,6 +283,8 @@ class SigningKey:
                                                            8 * len(digest)))
         number = string_to_number(digest)
         r, s = self.sign_number(number, entropy, k)
+        # print("r = {}".format(hex(r)))
+        # print("s = {}".format(hex(s)))
         return sigencode(r, s, self.privkey.order)
 
     def sign_number(self, number, entropy=None, k=None):
