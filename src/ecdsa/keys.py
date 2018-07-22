@@ -240,12 +240,12 @@ class SigningKey:
     def get_verifying_key(self):
         return self.verifying_key
 
-    def sign_deterministic(self, data, hashfunc=None, sigencode=sigencode_string, should_standardize=False):
+    def sign_deterministic(self, data, hashfunc=None, sigencode=sigencode_string, ensure_low_s_according_to_bip62=False):
         hashfunc = hashfunc or self.default_hashfunc
         digest = hashfunc(data).digest()
-        return self.sign_digest_deterministic(digest, hashfunc=hashfunc, sigencode=sigencode, should_standardize=should_standardize)
+        return self.sign_digest_deterministic(digest, hashfunc=hashfunc, sigencode=sigencode, ensure_low_s_according_to_bip62=ensure_low_s_according_to_bip62)
 
-    def sign_digest_deterministic(self, digest, hashfunc=None, sigencode=sigencode_string, should_standardize=False):
+    def sign_digest_deterministic(self, digest, hashfunc=None, sigencode=sigencode_string, ensure_low_s_according_to_bip62=False):
         """
         Calculates 'k' from data itself, removing the need for strong
         random generator and producing deterministic (reproducible) signatures.
@@ -256,9 +256,9 @@ class SigningKey:
             self.curve.generator.order(), secexp, hashfunc, digest)
         # print("RFC6979 'k' = `{}`".format(hex(k)))
 
-        return (k, self.sign_digest(digest, sigencode=sigencode, k=k, should_standardize=should_standardize))
+        return (k, self.sign_digest(digest, sigencode=sigencode, k=k, ensure_low_s_according_to_bip62=ensure_low_s_according_to_bip62))
 
-    def sign(self, data, entropy=None, hashfunc=None, sigencode=sigencode_string, k=None, should_standardize=False):
+    def sign(self, data, entropy=None, hashfunc=None, sigencode=sigencode_string, k=None, ensure_low_s_according_to_bip62=False):
         """
         hashfunc= should behave like hashlib.sha1 . The output length of the
         hash (in bytes) must not be longer than the length of the curve order
@@ -273,20 +273,20 @@ class SigningKey:
 
         hashfunc = hashfunc or self.default_hashfunc
         h = hashfunc(data).digest()
-        return self.sign_digest(h, entropy, sigencode, k, should_standardize=should_standardize)
+        return self.sign_digest(h, entropy, sigencode, k, ensure_low_s_according_to_bip62=ensure_low_s_according_to_bip62)
 
-    def sign_digest(self, digest, entropy=None, sigencode=sigencode_string, k=None, should_standardize=False):
+    def sign_digest(self, digest, entropy=None, sigencode=sigencode_string, k=None, ensure_low_s_according_to_bip62=False):
         if len(digest) > self.curve.baselen:
             raise BadDigestError("this curve (%s) is too short "
                                  "for your digest (%d)" % (self.curve.name,
                                                            8 * len(digest)))
         number = string_to_number(digest)
-        r, s = self.sign_number(number, entropy, k, should_standardize=should_standardize)
+        r, s = self.sign_number(number, entropy, k, ensure_low_s_according_to_bip62=ensure_low_s_according_to_bip62)
         # print("r = {}".format(hex(r)))
         # print("s = {}".format(hex(s)))
         return sigencode(r, s, self.privkey.order)
 
-    def sign_number(self, number, entropy=None, k=None, should_standardize=False):
+    def sign_number(self, number, entropy=None, k=None, ensure_low_s_according_to_bip62=False):
         # returns a pair of numbers
         order = self.privkey.order
         # privkey.sign() may raise RuntimeError in the amazingly unlikely
@@ -302,5 +302,5 @@ class SigningKey:
             _k = randrange(order, entropy)
 
         assert 1 <= _k < order
-        sig = self.privkey.sign(number, _k, should_standardize=should_standardize)
+        sig = self.privkey.sign(number, _k, ensure_low_s_according_to_bip62=ensure_low_s_according_to_bip62)
         return sig.r, sig.s

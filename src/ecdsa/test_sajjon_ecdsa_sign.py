@@ -41,11 +41,11 @@ def debug(value, variable_name):
     print('`{}`: `{}` = value=`{}`'.format(variable_name, class_name(value), value_print_friendly))
 
 
-def test_deterministic_signatures(curve, secret, msg, expectedK, expectedSignature=None, expectedSignR=None, expectedSignS=None, hashfunc=sha256, should_standardize=True):
+def test_deterministic_signatures(curve, secret, msg, expectedK, expectedSignature=None, expectedSignR=None, expectedSignS=None, hashfunc=sha256, ensure_low_s_according_to_bip62=True):
     msg = msg.encode('utf-8')
     secret = int(secret, 16)
     signing_key = SigningKey.from_secret_exponent(secret, curve)
-    (k, calculatedSignature) = signing_key.sign_deterministic(msg, hashfunc=hashfunc, sigencode=sigencode_der, should_standardize=should_standardize)
+    (k, calculatedSignature) = signing_key.sign_deterministic(msg, hashfunc=hashfunc, sigencode=sigencode_der, ensure_low_s_according_to_bip62=ensure_low_s_according_to_bip62)
     hexedK = format(k, 'x')
     assert hexedK == expectedK, "Deterministic K mismatch, expected {}, but got {}".format(expectedK, hexedK)
     r, s = sigdecode_der(calculatedSignature, curve.order)
@@ -58,10 +58,10 @@ def test_deterministic_signatures(curve, secret, msg, expectedK, expectedSignatu
         assert s == expectedSignS, "Signature S mismatch, expected {}, but got {}".format(format(expectedSignS, 'x'), format(s, 'x'))
 
 
-def test_signatures_secp256k1(secret, msg, expectedK, expectedSignature, should_standardize=True):
-    test_deterministic_signatures(SECP256k1, secret, msg, expectedK, expectedSignature, should_standardize=should_standardize)
+def test_signatures_secp256k1(secret, msg, expectedK, expectedSignature, ensure_low_s_according_to_bip62=True):
+    test_deterministic_signatures(SECP256k1, secret, msg, expectedK, expectedSignature, ensure_low_s_according_to_bip62=ensure_low_s_according_to_bip62)
 
-def test_signatures_secp256r1(hashfunc, msg, k, r, s, should_standardize=False):
+def test_signatures_secp256r1(hashfunc, msg, k, r, s, ensure_low_s_according_to_bip62=False):
     test_deterministic_signatures(
         NIST256p,
         'C9AFA9D845BA75166B5C215767B1D6934E50C3DB36E89B127B8A622B120F6721',
@@ -71,7 +71,7 @@ def test_signatures_secp256r1(hashfunc, msg, k, r, s, should_standardize=False):
         expectedSignR=r,
         expectedSignS=s,
         hashfunc=hashfunc,
-        should_standardize=should_standardize
+        ensure_low_s_according_to_bip62=ensure_low_s_according_to_bip62
     )
 
 # TEST VECTORS FROM: https://github.com/trezor/trezor-crypto/blob/957b8129bded180c8ac3106e61ff79a1a3df8893/tests/test_check.c#L1959-L1965
