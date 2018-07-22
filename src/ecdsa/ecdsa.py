@@ -155,8 +155,11 @@ class Private_key(object):
          (hash + (self.secret_multiplier * r) % n)) % n
     if s == 0:
       raise RuntimeError("amazingly unlucky random number s")
+    
+    # https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#Low_S_values_in_signatures
     if ensure_low_s_according_to_bip62:
       # q == n, just used `q` since that is what is in litterature: 
+      # https://bitcoin.stackexchange.com/questions/38252/the-complement-of-s-when-s-curve-order-2
       # https://bitcoin.stackexchange.com/questions/50980/test-r-s-values-for-signature-generation
       # https://bitcointalk.org/index.php?topic=285142.msg3299061#msg3299061
       q = G.order() 
